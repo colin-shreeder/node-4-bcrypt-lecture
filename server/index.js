@@ -9,7 +9,6 @@ const {SERVER_PORT, CONNECTION_STRING, SESSION_SECRET} = process.env;
 const app = express();
 // Top level middleware
 app.use(express.json());
-
 app.use(session({
     resave: false,
     saveUninitialized: true,
@@ -18,6 +17,11 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24 * 7
     }
 }))
+
+app.use((req, res, next) => {
+    console.log('Custom top level hit!')
+    next();
+})
 
 massive({
     connectionString: CONNECTION_STRING,
@@ -31,7 +35,14 @@ massive({
 
 // Enpoints
 app.post('/auth/register', auth.register);
-app.post('/auth/login', auth.login);
+app.post('/auth/login', 
+    (req, res, next) => { 
+        if(req.body.password === "12345"){
+        console.log("That's the same password I keep on my luggage!")
+        }
+        next();
+    },
+    auth.login);
 app.post('/auth/logout', auth.logout);
 app.get('/auth/get_user', auth.getUser);
 
